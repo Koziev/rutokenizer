@@ -71,9 +71,19 @@ class Tokenizer(object):
         return tokens1
 
 
-
-if __name__ == '__main__':
+def tokenizer_tests():
     tokenizer = Tokenizer()
     tokenizer.load()
-    res = tokenizer.tokenize(u' по-доброму вышел из-за угла, уйди-ка куда-нибудь. Потому что ярко-зеленый.')
+    predicted = u'|'.join(tokenizer.tokenize(u'По-доброму вышел из-за угла, уйди-ка куда-нибудь. Потому что ярко-зеленый.'))
+    expected = u'По-доброму|вышел|из-за|угла|,|уйди|-|ка|куда-нибудь|.|Потому|что|ярко-зеленый|.'
+    assert(predicted == expected)
+    print('Tokenizer tests - PASSED OK.')
+
+
+if __name__ == '__main__':
+    tokenizer_tests()
+
+    tokenizer = Tokenizer()
+    tokenizer.load()
+    res = tokenizer.tokenize(u'По-доброму вышел из-за угла, уйди-ка куда-нибудь. Потому что ярко-зеленый.')
     print('|'.join(res))
