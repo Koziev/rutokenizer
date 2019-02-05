@@ -20,7 +20,7 @@ class Tokenizer(object):
     Учитываются русские многословные лексемы ("что-либо", "по-японски").
     """
     def __init__(self):
-        self.regex1 = re.compile(r'[%s \u00a0\u202F\u2060\s]+' % re.escape(u'\t'))
+        self.regex1 = re.compile(r'[%s \xa0\u202F\u2060\s]+' % re.escape(u'\t'))
         self.delimiters = re.compile(r'([%s])' % re.escape(u'‼≠™®•·[¡+<>`~;.,‚?!-…№”“„{}|‹›/\'"–—_:«»*]()‘’≈'))
         self.spaces = re.compile(r'[%s]+' % re.escape(u' \u00a0\u202F\u2060'))
         self.delimiters2 = re.compile(r'([%s])' % re.escape(u' \u00a0\u202F\u2060‼≠™®•·[¡+<>`~;.,‚?!-…№”“„{}|‹›/\'"–—_:«»*]()‘’≈'))
@@ -156,6 +156,12 @@ class Tokenizer(object):
 def tokenizer_tests():
     tokenizer = Tokenizer()
     tokenizer.load()
+
+    # Символ 0x00a0 в качестве пробельного разделителя
+    predicted = tokenizer.tokenize(u'галактики — ')
+    assert(predicted[0] == u'галактики')
+    assert(predicted[1] == u'—')
+
     predicted = u'|'.join(tokenizer.tokenize(u'По-доброму вышел из-за угла, уйди-ка куда-нибудь. Потому что ярко-зеленый.'))
     expected = u'По-доброму|вышел|из-за|угла|,|уйди|-|ка|куда-нибудь|.|Потому|что|ярко-зеленый|.'
     assert(predicted == expected)
@@ -176,7 +182,6 @@ def tokenizer_tests():
     # В предложении всего один токен
     predicted = tokenizer.tokenize2(u'кошки')
     assert(predicted[0] == (u'кошки', 0, 5))
-
 
     print('Tokenizer tests - PASSED OK.')
 
