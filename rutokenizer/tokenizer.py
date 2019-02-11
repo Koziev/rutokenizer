@@ -21,9 +21,9 @@ class Tokenizer(object):
     """
     def __init__(self):
         self.regex1 = re.compile(r'[%s \xa0\u202F\u2060\s]+' % re.escape(u'\t'))
-        self.delimiters = re.compile(r'([%s])' % re.escape(u'‼≠™®•·[¡+<>`~;.,‚?!-…№”“„{}|‹›/\'"–—_:«»*]()‘’≈'))
+        self.delimiters = re.compile(r'([%s])' % re.escape(u'‼≠™®•·[¡+<>`~;.,‚?!-…№”“„{}|‹›/\'"–—_:‑«»*]()‘’≈'))
         self.spaces = re.compile(r'[%s]+' % re.escape(u' \u00a0\u202F\u2060'))
-        self.delimiters2 = re.compile(r'([%s])' % re.escape(u' \u00a0\u202F\u2060‼≠™®•·[¡+<>`~;.,‚?!-…№”“„{}|‹›/\'"–—_:«»*]()‘’≈'))
+        self.delimiters2 = re.compile(r'([%s])' % re.escape(u' \u00a0\u202F\u2060‼≠™®•·[¡+<>`~;.,‚?!-…‑№”“„{}|‹›/\'"–—_:«»*]()‘’≈'))
         self.words_with_hyphen = None
         self.prefix_hyphen = None
 
@@ -151,8 +151,6 @@ class Tokenizer(object):
         return tokens1
 
 
-
-
 def tokenizer_tests():
     tokenizer = Tokenizer()
     tokenizer.load()
@@ -161,6 +159,13 @@ def tokenizer_tests():
     predicted = tokenizer.tokenize(u'галактики — ')
     assert(predicted[0] == u'галактики')
     assert(predicted[1] == u'—')
+
+    # Символ "‑" в качестве разделителя
+    predicted = tokenizer.tokenize(u'книга‑то')
+    assert(len(predicted) == 3)
+    assert(predicted[0] == u'книга')
+    assert(predicted[1] == u'‑')
+    assert(predicted[2] == u'то')
 
     predicted = u'|'.join(tokenizer.tokenize(u'По-доброму вышел из-за угла, уйди-ка куда-нибудь. Потому что ярко-зеленый.'))
     expected = u'По-доброму|вышел|из-за|угла|,|уйди|-|ка|куда-нибудь|.|Потому|что|ярко-зеленый|.'
