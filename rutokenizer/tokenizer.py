@@ -20,10 +20,10 @@ class Tokenizer(object):
     Учитываются русские многословные лексемы ("что-либо", "по-японски").
     """
     def __init__(self):
-        self.regex1 = re.compile(r'[%s \xa0\u202F\u2060\s]+' % re.escape(u'\t'))
-        self.delimiters = re.compile(r'([%s])' % re.escape(u'‼≠™®•·[¡+<>`~;.,‚?!-…№”“„{}|‹›/\'"–—_:‑«»*]()‘’≈'))
-        self.spaces = re.compile(r'[%s]+' % re.escape(u' \u00a0\u202F\u2060'))
-        self.delimiters2 = re.compile(r'([%s])' % re.escape(u' \u00a0\u202F\u2060‼≠™®•·[¡+<>`~;.,‚?!-…‑№”“„{}|‹›/\'"–—_:«»*]()‘’≈'))
+        self.regex1 = re.compile(u'[%s ]+' % re.escape(u'\t\u00a0\u202F\u2060\u200A\s'))
+        self.delimiters = re.compile(u'([%s])' % re.escape(u'‼≠™®•·[¡+<>`~;.,‚?!-…№”“„{}|‹›/\'"–—_:‑«»*]()‘’≈'))
+        self.spaces = re.compile(u'[%s]+' % re.escape(u' \u00a0\u202F\u2060\u200A'))
+        self.delimiters2 = re.compile(u'([%s])' % re.escape(u' \u00a0\u202F\u2060\u200A‼≠™®•·[¡+<>`~;.,‚?!-…‑№”“„{}|‹›/\'"–—_:«»*]()‘’≈'))
         self.words_with_hyphen = None
         self.prefix_hyphen = None
 
@@ -159,6 +159,16 @@ def tokenizer_tests():
     predicted = tokenizer.tokenize(u'галактики — ')
     assert(predicted[0] == u'галактики')
     assert(predicted[1] == u'—')
+
+    # Суррогатный пробел \x200a в кач-ве разделителя
+    predicted = tokenizer.tokenize(u'чуть что — бежит в обменник.')
+    assert (len(predicted) == 7)
+    predicted = u'|'.join(predicted)
+    expected = u'чуть|что|—|бежит|в|обменник|.'
+    if predicted != expected:
+        print(u'Failed: predicted={} expected={}'.format(predicted, expected))
+        raise AssertionError()
+
 
     # Символ "‑" в качестве разделителя
     predicted = tokenizer.tokenize(u'книга‑то')
