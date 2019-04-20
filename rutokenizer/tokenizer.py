@@ -66,7 +66,7 @@ class Tokenizer(object):
                 and Tokenizer.is_digit(tokens0[i-1][-1]) and Tokenizer.is_digit(tokens0[i+1][0]):
                 # склеиваем число с плавающей точкой, которое регуляркой разделено на 3 части
                 tokens1[-1] += u'.' + tokens0[i+1]
-                i += 1
+                i += 2
             elif utoken0 not in self.prefix_hyphen:
                 tokens1.append(tokens0[i])
                 i += 1
@@ -169,6 +169,7 @@ def tokenizer_tests():
     # Десятичная точка в числах с плавающей запятой
     predicted = tokenizer.tokenize(u'3.1415926')
     assert(predicted[0] == u'3.1415926')
+    assert(len(predicted) == 1)
 
     # Символ 0x00a0 в качестве пробельного разделителя
     predicted = tokenizer.tokenize(u'галактики — ')
