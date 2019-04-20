@@ -44,6 +44,10 @@ class Tokenizer(object):
     def tokenize0(self, phrase):
         return list(w for w in self.regex1.split(self.before_split(phrase)) if len(w) > 0)
 
+    @staticmethod
+    def is_digit(c):
+        return c in u'0123456789'
+
     def tokenize(self, phrase):
         """
         Простая токенизация, без сохранения информации о посимвольных позициях токенов.
@@ -53,10 +57,17 @@ class Tokenizer(object):
         tokens0 = self.tokenize0(phrase)
         tokens1 = []
         nt = len(tokens0)
+        nt1 = nt - 1
         i = 0
         while i < nt:
             utoken0 = tokens0[i].lower()
-            if utoken0 not in self.prefix_hyphen:
+
+            if utoken0 == '.' and i > 0 and i < nt1\
+                and Tokenizer.is_digit(tokens0[i-1][-1]) and Tokenizer.is_digit(tokens0[i+1][0]):
+                # склеиваем число с плавающей точкой, которое регуляркой разделено на 3 части
+                tokens1[-1] += u'.' + tokens0[i+1]
+                i += 1
+            elif utoken0 not in self.prefix_hyphen:
                 tokens1.append(tokens0[i])
                 i += 1
             else:
@@ -155,6 +166,10 @@ def tokenizer_tests():
     tokenizer = Tokenizer()
     tokenizer.load()
 
+    # Десятичная точка в числах с плавающей запятой
+    predicted = tokenizer.tokenize(u'3.1415926')
+    assert(predicted[0] == u'3.1415926')
+
     # Символ 0x00a0 в качестве пробельного разделителя
     predicted = tokenizer.tokenize(u'галактики — ')
     assert(predicted[0] == u'галактики')
@@ -168,7 +183,6 @@ def tokenizer_tests():
     if predicted != expected:
         print(u'Failed: predicted={} expected={}'.format(predicted, expected))
         raise AssertionError()
-
 
     # Символ "‑" в качестве разделителя
     predicted = tokenizer.tokenize(u'книга‑то')
@@ -206,5 +220,6 @@ if __name__ == '__main__':
 
     tokenizer = Tokenizer()
     tokenizer.load()
+
     res = tokenizer.tokenize(u'По-доброму вышел из-за угла, уйди-ка куда-нибудь. Потому что ярко-зеленый.')
     print('|'.join(res))

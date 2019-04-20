@@ -6,7 +6,7 @@ with io.open("README.md", mode="r", encoding='utf-8') as fh:
 
 setuptools.setup(
     name="rutokenizer",
-    version="0.0.9",
+    version="0.0.10",
     author="Ilya Koziev",
     author_email="inkoziev@gmail.com",
     description="Russian text segmenter and tokenizer",
