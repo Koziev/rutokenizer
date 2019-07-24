@@ -20,7 +20,7 @@ class Tokenizer(object):
     Учитываются русские многословные лексемы ("что-либо", "по-японски").
     """
     def __init__(self):
-        self.regex1 = re.compile(u'[%s ]+' % re.escape(u'\t\u00a0\u202F\u2060\u200A\s'))
+        self.regex1 = re.compile(u'[\\s%s ]+' % re.escape(u'\t\u00a0\u202F\u2060\u200A'))  # \s
         self.delimiters = re.compile(u'([%s])' % re.escape(u'‼≠™®•·[¡+<>`~;.,‚?!-…№”“„{}|‹›/\'"–—_:‑«»*]()‘’≈'))
         self.spaces = re.compile(u'[%s]+' % re.escape(u' \u00a0\u202F\u2060\u200A'))
         self.delimiters2 = re.compile(u'([%s])' % re.escape(u' \u00a0\u202F\u2060\u200A‼≠™®•·[¡+<>`~;.,‚?!-…‑№”“„{}|‹›/\'"–—_:«»*]()‘’≈'))
@@ -165,6 +165,13 @@ class Tokenizer(object):
 def tokenizer_tests():
     tokenizer = Tokenizer()
     tokenizer.load()
+
+    # Кавычки
+    predicted = tokenizer.tokenize(u' "database"')
+    assert(len(predicted) == 3)
+    assert(predicted[0] == u'"')
+    assert(predicted[1] == u'database')
+    assert(predicted[2] == u'"')
 
     # Десятичная точка в числах с плавающей запятой
     predicted = tokenizer.tokenize(u'3.1415926')
