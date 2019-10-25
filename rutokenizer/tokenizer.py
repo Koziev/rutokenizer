@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 Простые токенизаторы - разбивают строку на слова, учтывая наличие многословных лексем.
-'''
+25-10-2019 исправлен баг в Tokenizer.tokenize2("говорили по-немецки")
+"""
 
 from __future__ import print_function
 
@@ -74,11 +75,11 @@ class Tokenizer(object):
                 min_len, max_len = self.prefix_hyphen[utoken0]
                 found_aggregate = False
                 for l1 in range(max_len, min_len-1, -1):
-                    if i + l1 < nt:
-                        aggregate = u''.join(tokens0[i: i + l1 + 2])
+                    if i + l1 <= nt:
+                        aggregate = u''.join(tokens0[i: i + l1])
                         if aggregate.lower() in self.words_with_hyphen:
                             tokens1.append(aggregate)
-                            i += l1 + 2
+                            i += l1
                             found_aggregate = True
                             break
 
@@ -146,12 +147,12 @@ class Tokenizer(object):
                 min_len, max_len = self.prefix_hyphen[utoken0]
                 found_aggregate = False
                 for l1 in range(max_len, min_len-1, -1):
-                    if i + l1 < nt:
-                        aggregate = u''.join(t[0] for t in tokens0[i: i + l1 + 2])
+                    if i + l1 <= nt:
+                        aggregate = u''.join(t[0] for t in tokens0[i: i + l1])
                         if aggregate.lower() in self.words_with_hyphen:
-                            compound_token = (aggregate, tokens0[i][1], tokens0[i + l1 + 1][2])
+                            compound_token = (aggregate, tokens0[i][1], tokens0[i + l1 - 1][2])
                             tokens1.append(compound_token)
-                            i += l1 + 2
+                            i += l1
                             found_aggregate = True
                             break
 
@@ -165,6 +166,33 @@ class Tokenizer(object):
 def tokenizer_tests():
     tokenizer = Tokenizer()
     tokenizer.load()
+
+    predicted = tokenizer.tokenize(u'по-доброму вышел')
+    assert(len(predicted) == 2)
+    assert(predicted[0] == u'по-доброму')
+    assert(predicted[1] == u'вышел')
+
+    predicted = tokenizer.tokenize2(u'по-доброму вышел')
+    assert(len(predicted) == 2)
+    assert(predicted[0][0] == u'по-доброму')
+    assert(predicted[1][0] == u'вышел')
+
+    predicted = tokenizer.tokenize(u'что-либо')
+    assert(len(predicted) == 1)
+    assert(predicted[0] == u'что-либо')
+
+    predicted = tokenizer.tokenize2(u'что-либо')
+    assert(len(predicted) == 1)
+
+    predicted = tokenizer.tokenize2(u'говорили по-немецки')
+    assert(len(predicted) == 2)
+    assert(predicted[0][0] == u'говорили')
+    assert(predicted[1][0] == u'по-немецки')
+
+    predicted = tokenizer.tokenize(u'говорили по-немецки')
+    assert(len(predicted) == 2)
+    assert(predicted[0] == u'говорили')
+    assert(predicted[1] == u'по-немецки')
 
     # Кавычки
     predicted = tokenizer.tokenize(u' "database"')
