@@ -27,6 +27,8 @@ class Tokenizer(object):
         self.delimiters2 = re.compile(u'([%s])' % re.escape(u' \u00a0\u202F\u2060\u200A‼≠™®•·[¡+<>`~;.,‚?!-…‑№”“„{}|‹›/\'"–—_:«»*]()‘’≈'))
         self.words_with_hyphen = None
         self.prefix_hyphen = None
+        self.nondelim_hyphen = re.compile(u'([1-9])(-)([абвгдеёжзийклмнопрстуфхцчшщъыьэюя]+)', re.IGNORECASE)
+        self.cyr_chars = set(u'абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ')
 
     def load(self):
         module_folder = str(pathlib.Path(__file__).resolve().parent)
@@ -39,11 +41,15 @@ class Tokenizer(object):
 
         pass
 
-    def before_split(self, s):
-        return self.delimiters.sub(u' \\1 ', s.replace('--', '-'))
+    def before_split(self, s0):
+        s = self.nondelim_hyphen.sub(u'\\1\uffff\\3', s0.replace('--', '-'))
+        return self.delimiters.sub(u' \\1 ', s)
+
+    def revert_encoded_hyphen(self, s):
+        return s.replace('\uffff', '-')
 
     def tokenize0(self, phrase):
-        return list(w for w in self.regex1.split(self.before_split(phrase)) if len(w) > 0)
+        return list(self.revert_encoded_hyphen(w) for w in self.regex1.split(self.before_split(phrase)) if len(w) > 0)
 
     @staticmethod
     def is_digit(c):
@@ -133,7 +139,6 @@ class Tokenizer(object):
             last_token = (phrase[start_pos:], start_pos, phrase_len)
             tokens0.append(last_token)
 
-
         # Теперь надо объединить MWU типа "что-либо"
         tokens1 = []
         nt = len(tokens0)
@@ -141,8 +146,15 @@ class Tokenizer(object):
         while i < nt:
             utoken0 = tokens0[i][0].lower()
             if utoken0 not in self.prefix_hyphen:
-                tokens1.append(tokens0[i])
-                i += 1
+                if utoken0[-1] in u'0123456789' and i < nt-2 and tokens0[i+1][0] == u'-' and tokens0[i+2][0][0] in self.cyr_chars:
+                    # 1-я
+                    aggregate = u''.join(t[0] for t in tokens0[i: i + 3])
+                    compound_token = (aggregate, tokens0[i][1], tokens0[i + 2][2])
+                    tokens1.append(compound_token)
+                    i += 3
+                else:
+                    tokens1.append(tokens0[i])
+                    i += 1
             else:
                 min_len, max_len = self.prefix_hyphen[utoken0]
                 found_aggregate = False
@@ -166,6 +178,15 @@ class Tokenizer(object):
 def tokenizer_tests():
     tokenizer = Tokenizer()
     tokenizer.load()
+
+    predicted = tokenizer.tokenize(u'1-я')
+    assert(len(predicted) == 1)
+    assert(predicted[0] == u'1-я')
+
+    predicted = tokenizer.tokenize2(u'1-я 2-ую')
+    assert(len(predicted) == 2)
+    assert(predicted[0][0] == u'1-я')
+    assert(predicted[1][0] == u'2-ую')
 
     predicted = tokenizer.tokenize(u'по-доброму вышел')
     assert(len(predicted) == 2)
