@@ -134,7 +134,7 @@ class Tokenizer(object):
 
         # последний токен, если это не разделитель, надо добавить.
         phrase_len = len(phrase)
-        if len(delim_tokens) == 0 or delim_tokens[-1][2] != phrase_len:
+        if (len(delim_tokens) == 0 or delim_tokens[-1][2] != phrase_len) and phrase_len > 0:
             start_pos = delim_tokens[-1][2] if len(delim_tokens) > 0 else 0
             last_token = (phrase[start_pos:], start_pos, phrase_len)
             tokens0.append(last_token)
@@ -146,7 +146,8 @@ class Tokenizer(object):
         while i < nt:
             utoken0 = tokens0[i][0].lower()
             if utoken0 not in self.prefix_hyphen:
-                if utoken0[-1] in u'0123456789' and i < nt-2 and tokens0[i+1][0] == u'-' and tokens0[i+2][0][0] in self.cyr_chars:
+                if len(utoken0) > 0 and utoken0[-1] in u'0123456789' and i < nt-2\
+                        and tokens0[i+1][0] == u'-' and tokens0[i+2][0][0] in self.cyr_chars:
                     # 1-я
                     aggregate = u''.join(t[0] for t in tokens0[i: i + 3])
                     compound_token = (aggregate, tokens0[i][1], tokens0[i + 2][2])
@@ -178,6 +179,13 @@ class Tokenizer(object):
 def tokenizer_tests():
     tokenizer = Tokenizer()
     tokenizer.load()
+
+    # 27-01-2020 тест для пустой строки
+    predicted = tokenizer.tokenize(u'')
+    assert(len(predicted) == 0)
+
+    predicted = tokenizer.tokenize2(u'')
+    assert(len(predicted) == 0)
 
     predicted = tokenizer.tokenize(u'1-я')
     assert(len(predicted) == 1)
