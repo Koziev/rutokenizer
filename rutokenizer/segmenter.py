@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Сегментатор текста на предложения.
+# 30.01.2021 исправлен баг с входным текстом длиной 1 символ
 """
 
 from __future__ import print_function
@@ -112,7 +113,7 @@ class Segmenter(object):
                         break
 
             sent = text[break_pos+1:next_break+1].strip()
-            if len(sent) > 1:
+            if len(sent) > 0:  # 30.01.2021 исправлен баг с входным текстом длиной 1 символ
                 res.append(sent)
             break_pos = next_break
 
