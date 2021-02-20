@@ -107,6 +107,13 @@ class Segmenter(object):
                             start_pos = p+1
                             continue
 
+                        while True:
+                            p2 = p + 1
+                            if p2 < full_len and text[p2] in u'.?？!;':
+                                p = p2
+                            else:
+                                break
+
                         next_break = p
                         break
                     else:
@@ -118,3 +125,9 @@ class Segmenter(object):
             break_pos = next_break
 
         return res
+
+if __name__ == '__main__':
+    segm = Segmenter()
+    for s in segm.split('Кошка...... Собака!!!!! Почему?!'):
+        print(s)
+
