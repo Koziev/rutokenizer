@@ -45,6 +45,8 @@ def normalize_abbrev(text0):
     for s1, s2 in sx:
         text = text.replace(s1, s2)
 
+    text = text.replace('_', '.')
+
     return text
 
 
@@ -61,12 +63,16 @@ class Segmenter(object):
         # cyrillic 0x0400...0x04FF
         return 0x0400 <= ord(c) <= 0x04ff
 
-    def split(self, text0):
+    def split(self, text0, use_abbrev=True):
         """
         :param text0: text to split
         :return: list of sentences
         """
-        text = normalize_abbrev(text0)
+        if use_abbrev:
+            text = normalize_abbrev(text0)
+        else:
+            text = text0
+
         #text = textnormalizer.preprocess_line(text)
         res = []
         break_pos = -1
@@ -128,6 +134,10 @@ class Segmenter(object):
 
 if __name__ == '__main__':
     segm = Segmenter()
-    for s in segm.split('Кошка...... Собака!!!!! Почему?!'):
+
+    for s in segm.split('мог. какая'):
+        print(s)
+
+    for s in segm.split('Кошка...... Собака!!!!! Почему?! Я не знаю. Кто знает?'):
         print(s)
 
